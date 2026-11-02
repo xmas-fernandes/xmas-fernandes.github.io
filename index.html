@@ -1,568 +1,174 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ЭтоНеЯ | Ключи к цифровой свободе</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ArThirtyFour/NeedyWebUI@main/nso_ui.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preload" href="https://cdn.jsdelivr.net/gh/ArThirtyFour/NeedyWebUI@main/fonts/DinkieBitmap-9px.woff2" as="font" type="font/woff2" crossorigin>
-    <style>
-        /* ===== ФОНЫ И АДАПТИВНОСТЬ ===== */
-        :root {
-            --bg-side-width: 250px;
-            --bg-safe-extra: 16px;
-        }
-
-        /* Бесшовный тайловый фон контейнера (fixed в фазе с фоном страницы) */
-        .nightbg > .container {
-            background-color: #05010a;
-            background-image: url("https://cdn.jsdelivr.net/gh/ArThirtyFour/NeedyWebUI@main/background/nsotilebg.png");
-            background-attachment: fixed;
-            background-repeat: repeat;
-        }
-
-        /* На мобилке и планшете убираем боковые башни, чтобы не сжимали и не резали контент */
-        @media (max-width: 980px) {
-            .nightbg::before {
-                background:
-                    linear-gradient(to right, transparent, transparent),
-                    none,
-                    none,
-                    linear-gradient(to left, transparent, transparent),
-                    url("https://cdn.jsdelivr.net/gh/ArThirtyFour/NeedyWebUI@main/background/nsotilebg.png") repeat !important;
-                background-attachment: fixed !important;
-                background-position: left top !important;
-                background-repeat: repeat !important;
-            }
-            .nightbg {
-                padding: 0 10px 40px !important;
-            }
-            .container {
-                max-width: 100% !important;
-                padding: 10px !important;
-            }
-        }
-
-        @media (max-width: 520px) {
-            .nightbg {
-                padding: 0 6px 30px !important;
-            }
-            .container {
-                padding: 6px 6px 30px !important;
-            }
-        }
-
-        /* Адаптивная сетка клиентов */
-        .clients-grid {
-            display: grid !important;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
-            gap: 14px !important;
-        }
-
-        /* Адаптивные шаги (KPI) */
-        @media (max-width: 860px) {
-            .nso-kpi {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            }
-        }
-        @media (max-width: 520px) {
-            .nso-kpi {
-                grid-template-columns: 1fr !important;
-            }
-        }
-
-        /* Сетка подписок */
-        @media (max-width: 620px) {
-            .subs-grid {
-                grid-template-columns: 1fr !important;
-            }
-        }
-
-        .nso-accordion--open .nso-accordion__body { max-height: 3000px; }
-
-        html.intro-lock { overflow: hidden; }
-        .intro {
-            position: fixed; inset: 0; z-index: 999;
-            display: grid; place-items: center;
-            background: radial-gradient(120% 90% at 50% 10%, #2a1b4d 0%, #1e1238 55%, #150d28 100%);
-            font-family: 'dinkie9px', monospace;
-            cursor: pointer;
-        }
-        .intro::before {              /* scanlines + flicker */
-            content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
-            background: repeating-linear-gradient(0deg, rgba(0,0,0,.30) 0 1px, transparent 1px 4px);
-            animation: intro-scan 5s linear infinite;
-        }
-        .intro::after {               /* teal boot glow */
-            content: ''; position: absolute; left: 50%; top: 50%; width: 60vw; height: 40vh;
-            transform: translate(-50%, -50%); pointer-events: none; z-index: 1;
-            background: radial-gradient(closest-side, rgba(144,243,225,.08), transparent 70%);
-        }
-        @keyframes intro-scan { to { background-position-y: 128px; } }
-
-        .intro__inner { position: relative; z-index: 3; width: min(720px, 92vw); text-align: center; }
-
-        /* --- мини-сцена: блокировка → ключ → разблокировка --- */
-        .intro__mini { position: relative; height: 196px; animation: mini-out .32s ease 2.05s forwards; }
-        @keyframes mini-out { to { opacity: 0; transform: translateY(-12px); } }
-        .mini-row { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
-        .pop {
-            opacity: 0;
-            animation: pop-in .18s steps(2, end) both;
-            animation-delay: var(--d, 0s);
-        }
-        @keyframes pop-in {
-            0%   { opacity: 0; transform: translateX(-50%) translateY(10px) scale(1.08); }
-            60%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(0.98); }
-            100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-        }
-        .intro__lockwrap { top: 0; font-size: 56px; height: 62px; }
-        .intro__lock    { color: #E75353; }
-        .intro__lock i  { display: inline-block; animation: lock-shake .35s steps(2, end) .35s 2; }
-        .intro__lock--off { animation: lock-off .16s ease 1.25s forwards; }
-        @keyframes lock-shake { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-9deg); } }
-        @keyframes lock-off  { to { opacity: 0; transform: scale(0.85); } }
-        .intro__unlock {
-            top: 0; left: 50%; transform: translateX(-50%); font-size: 56px; color: #90F3E1;
-            position: absolute; opacity: 0;
-            animation: unlock-in .28s steps(2, end) 1.25s forwards;
-        }
-        @keyframes unlock-in {
-            0%   { opacity: 0; transform: translateX(-50%) scale(1.3); }
-            60%  { opacity: 1; transform: translateX(-50%) scale(0.94) rotate(7deg); }
-            100% { opacity: 1; transform: translateX(-50%) scale(1) rotate(0); }
-        }
-        .intro__deny {
-            top: 80px; font-size: clamp(16px, 3.5vw, 22px); letter-spacing: .2em; text-indent: .2em;
-            color: #E75353; animation: pop-in .18s steps(2, end) .25s both, deny-off .18s ease 1.25s forwards;
-        }
-        @keyframes deny-off { to { opacity: 0; } }
-        .intro__allow {
-            top: 80px; font-size: clamp(16px, 3.5vw, 22px); letter-spacing: .2em; text-indent: .2em;
-            color: #90F3E1; opacity: 0;
-            animation: allow-in .25s steps(2, end) 1.3s forwards;
-        }
-        @keyframes allow-in {
-            0%   { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-        .intro__key {
-            top: 126px; font-size: clamp(12px, 2.6vw, 16px); color: #EFCFEF; opacity: 0;
-            animation: key-type .7s steps(24, end) .55s forwards;
-        }
-        .intro__key i { color: #90F3E1; margin-right: 8px; }
-        @keyframes key-type {
-            0%   { opacity: 1; clip-path: inset(0 100% 0 0); }
-            100% { opacity: 1; clip-path: inset(0 -12px 0 0); }
-        }
-        .intro__stamps {
-            top: 160px; display: inline-flex; gap: 10px;
-            font-size: 13px; color: #90F3E1; opacity: 0;
-            animation: stamps-in .22s steps(3, end) 1.6s forwards;
-        }
-        .intro__stamps .st { padding: 4px 10px; border: 2px solid #4D23CD; background: rgba(77,35,205,.25); }
-        .intro__stamps .st i { margin-right: 6px; }
-        .intro__stamps .st b { color: #FDF8FD; }
-        @keyframes stamps-in {
-            0%   { opacity: 0; transform: translateX(-50%) translateY(6px); }
-            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
-
-        .intro__mark { font-size: clamp(56px, 12vw, 96px); line-height: 1; letter-spacing: .04em; color: #FDF8FD; margin-top: 26px; }
-        .intro__mark .il {
-            display: inline-block; opacity: 0;
-            text-shadow: 4px 4px 0 #4D23CD;
-            animation: il-in .2s steps(2, end) both;
-            animation-delay: var(--d, 0s);
-        }
-        @keyframes il-in {
-            0%   { opacity: 0; transform: translateY(14px); color: #90F3E1; }
-            55%  { opacity: 1; transform: translateY(-2px); color: #EFCFEF; }
-            100% { opacity: 1; transform: translateY(0);  color: #FDF8FD; }
-        }
-        .intro__tag {
-            margin-top: 12px; font-size: clamp(14px, 3vw, 20px);
-            letter-spacing: .38em; text-indent: .38em; color: #EFCFEF; opacity: 0;
-            animation: tag-in .28s steps(2, end) 2.6s forwards;
-        }
-        @keyframes tag-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-        .intro__skip {
-            position: absolute; bottom: 18px; left: 0; right: 0; text-align: center;
-            font-size: 10px; letter-spacing: .2em; color: #90F3E1; opacity: .55; z-index: 3;
-        }
-        .intro--out { animation: intro-out .5s cubic-bezier(.7, 0, .2, 1) forwards; pointer-events: none; }
-        @keyframes intro-out { to { transform: translateY(-100%); opacity: .9; } }
-
-        @media (prefers-reduced-motion: reduce) {
-            .intro { display: none; }
-            html.intro-lock { overflow: auto; }
-        }
-        /* ===== /INTRO ===== */
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>homedroid - Turn an Old Android Phone Into a Home Server</title>
+<meta name="description" content="Turn an old Android phone into a home server: SSH, web hosting, Jellyfin with hardware transcoding, Immich, qBittorrent, Home Assistant and a web dashboard. No root.">
+<meta name="keywords" content="android, android-server, cloudflare-tunnel, home-server, homelab, immich, jellyfin, llama-cpp, nas, no-root, self-hosted, tailscale">
+<meta name="author" content="homedroid">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0f172a">
+<link rel="canonical" href="https://github.com/xmas-fernandes/homedroid">
+<meta property="og:title" content="homedroid - Turn an Old Android Phone Into a Home Server">
+<meta property="og:description" content="A friendly home server for your old Android phone: media, photos, downloads, smart home control, remote access, and a web dashboard. No root required.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://github.com/xmas-fernandes/homedroid/releases">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="homedroid - Turn an Old Android Phone Into a Home Server">
+<meta name="twitter:description" content="Turn an old Android phone into a home server with Jellyfin, Immich, qBittorrent, Home Assistant, remote access, and a web dashboard. No root.">
 </head>
-<body>
+<body style="margin:0; background:#eef3f8; color:#1f2937; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height:1.65; -webkit-font-smoothing:antialiased;">
+<main style="max-width:980px; margin:0 auto; padding:clamp(18px,4vw,42px);">
 
-    <div class="intro" id="intro">
-        <div class="intro__inner">
-            <div class="intro__mini">
-                <div class="intro__lockwrap mini-row pop" style="--d:.1s;">
-                    <span class="intro__lock intro__lock--off"><i class="fas fa-lock"></i></span>
-                    <span class="intro__unlock"><i class="fas fa-lock-open"></i></span>
-                </div>
-                <div class="intro__deny mini-row">ДОСТУП ЗАКРЫТ // БЕЛЫЙ СПИСОК</div>
-                <div class="intro__allow mini-row">ДОСТУП ПОЛУЧЕН</div>
-                <div class="intro__key mini-row"><i class="fas fa-key"></i><span>vless://keys.etoneya.su#0000</span></div>
-                <div class="intro__stamps mini-row">
-                    <span class="st"><i class="fab fa-youtube"></i>YOUTUBE <b>OK</b></span>
-                    <span class="st"><i class="fas fa-robot"></i>GEMINI <b>OK</b></span>
-                    <span class="st"><i class="fab fa-telegram-plane"></i>TELEGRAM <b>OK</b></span>
-                </div>
-            </div>
-            <div class="intro__mark" aria-label="ЭтоНеЯ">
-                <span class="il" style="--d:2.05s">Э</span><span class="il" style="--d:2.15s">т</span><span class="il" style="--d:2.25s">о</span><span class="il" style="--d:2.35s">Н</span><span class="il" style="--d:2.45s">е</span><span class="il" style="--d:2.55s">Я</span>
-            </div>
-            <div class="intro__tag">КЛЮЧИ К ЦИФРОВОЙ СВОБОДЕ</div>
-        </div>
-        <div class="intro__skip">КЛИК — ПРОПУСТИТЬ</div>
-    </div>
+<header style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 55%,#0e7490 100%); color:#ffffff; border-radius:24px; padding:clamp(24px,5vw,48px); box-shadow:0 18px 45px rgba(15,23,42,0.22);">
+<h1 style="margin:0 0 14px 0; font-size:clamp(28px,4.8vw,46px); line-height:1.12; letter-spacing:-0.03em; font-weight:800;">🏠 homedroid - Your Old Phone, Now a Home Server</h1>
+<p style="margin:0 0 24px 0; font-size:clamp(16px,2vw,19px); color:#dbeafe; max-width:760px;">Turn an old Android phone into a useful home server for files, media, photos, downloads, smart home control, and more — without root.</p>
+<a href="https://github.com/xmas-fernandes/homedroid/releases" style="display:inline-block; background:linear-gradient(135deg,#ff6a00,#ee0979); color:#ffffff; text-decoration:none; font-weight:800; font-size:18px; padding:16px 26px; border-radius:14px; box-shadow:0 12px 28px rgba(238,9,121,0.35); border:1px solid rgba(255,255,255,0.25);">Visit this link to download the application</a>
+</header>
 
-    <script>
+<section style="margin-top:clamp(24px,4vw,36px); background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">🚀 Getting Started</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">homedroid is designed for people who want a practical home server without buying extra hardware or learning complicated developer tools. If you have an old Android phone and a Windows computer, you already have the main pieces. The phone becomes the server, and your Windows computer becomes the easy control point.</p>
+<p style="margin:0 0 14px 0; font-size:17px;">You do not need programming knowledge. You do not need to root your phone. You use a normal web browser on Windows to open the download page, and you use the homedroid dashboard to manage your services. The dashboard is made to be clear, friendly, and easy to scan.</p>
+<p style="margin:0; font-size:17px;">The first step is simple: open the official download page. From there, you can get the application and follow the on-screen guidance to connect your Android phone and begin using your new home server.</p>
+</section>
 
-    (function () {
-        var t = new URLSearchParams(location.search).get('t');
-        if (t === null) return;
-        var T = parseFloat(t) || 0;
-        var root = document.getElementById('intro');
-        if (!root) return;
-        if (T >= 3.0) root.classList.add('intro--out');   // кадры финального ухода
-        var els = [root].concat([].slice.call(root.querySelectorAll('*')));
-        els.forEach(function (el) {
-            var cs = getComputedStyle(el);
-            if (cs.animationName === 'none') return;
-            var ds = cs.animationDelay.split(/\s*,\s*/).map(function (x) { return parseFloat(x) || 0; });
-            el.style.animationDelay = ds.map(function (d) { return (d - T) + 's'; }).join(',');
-            el.style.animationPlayState = 'paused';
-        });
-    })();
-    /* контроллер интро */
-    (function () {
-        var intro = document.getElementById('intro');
-        var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        var frozen = new URLSearchParams(location.search).get('t') !== null;
-        if (!intro || reduce) { if (intro) intro.remove(); return; }
-        document.documentElement.classList.add('intro-lock');
-        function done() {
-            intro.remove();
-            document.documentElement.classList.remove('intro-lock');
-        }
-        intro.addEventListener('click', function () {
-            intro.classList.add('intro--out');
-            setTimeout(done, 550);
-        });
-        if (!frozen) {
-            setTimeout(function () { intro.classList.add('intro--out'); }, 3050);
-            setTimeout(done, 3600);
-        }
-    })();
-    </script>
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">✨ What homedroid Does</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">homedroid turns an old Android phone into a small home server that can run popular self-hosted tools. Instead of leaving an unused phone in a drawer, you can give it a useful second life. It can store files, serve media, back up photos, download items, and connect to your smart home.</p>
+<p style="margin:0 0 14px 0; font-size:17px;">The project focuses on convenience. It brings SSH, web hosting, Jellyfin with hardware transcoding, Immich, qBittorrent, Home Assistant, and a web dashboard together in one place. It also supports remote access tools such as Cloudflare Tunnel and Tailscale, so you can reach your services when you are away from home.</p>
+<p style="margin:0; font-size:17px;">Everything is managed from a web dashboard. That means you can open a browser on Windows, visit your dashboard, and check what is running without typing commands or editing configuration files.</p>
+</section>
 
-    <div class="nightbg">
-        <div class="container">
-            <div class="nso-panel">
-                <div class="nso-panel__title"><h2>Об проекте</h2></div>
-                <div class="nso-panel__body">
-                    <div class="nso-kpi">
-                        <div class="nso-kpi__item">
-                            <div class="nso-kpi__label">Статус</div>
-                            <div class="nso-kpi__value">РАБОТАЕТ</div>
-                        </div>
-                        <div class="nso-kpi__item">
-                            <div class="nso-kpi__label">Белый список?</div>
-                            <div class="nso-kpi__value">ОБХОДИТСЯ</div>
-                        </div>
-                    </div>
-                    <p>ЭтоНеЯ или ЦеЯ — проект для помощи людям в ситуациях ограничения интернета в виде белых списков и т.д.</p>
-                </div>
-            </div>
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">🧰 What You Can Run</h2>
+<ul style="margin:0; padding-left:22px; font-size:17px;">
+<li style="margin-bottom:10px;"><strong>Jellyfin:</strong> Organize and stream your personal movies, shows, music, and home videos. Hardware transcoding helps the phone handle video conversion more smoothly.</li>
+<li style="margin-bottom:10px;"><strong>Immich:</strong> Keep your photos and videos backed up in a private photo library that you control.</li>
+<li style="margin-bottom:10px;"><strong>qBittorrent:</strong> Manage downloads from a friendly web interface.</li>
+<li style="margin-bottom:10px;"><strong>Home Assistant:</strong> Bring smart home devices together and control them from one dashboard.</li>
+<li style="margin-bottom:10px;"><strong>Web hosting:</strong> Host simple pages and small web apps directly from the phone.</li>
+<li style="margin-bottom:10px;"><strong>SSH:</strong> Use secure remote access for advanced tasks when you need it.</li>
+<li style="margin-bottom:10px;"><strong>llama.cpp:</strong> Run lightweight local AI models for small experiments and private testing.</li>
+<li style="margin-bottom:0;"><strong>Remote access:</strong> Use Cloudflare Tunnel or Tailscale to reach your services safely when you are not on your home network.</li>
+</ul>
+</section>
 
-            <div class="nso-panel">
-                <div class="nso-panel__title"><h2>Ссылки на каналы</h2></div>
-                <div class="nso-panel__body">
-                    <div class="u-flex u-flex-wrap u-gap10">
-                        <a class="nso-btn" href="https://t.me/YoutubeUnBlockRU" target="_blank">
-                            <i class="fab fa-telegram-plane" style="margin-right:6px;"></i>Основной канал "ЭтоНеЯ"
-                        </a>
-                        <a class="nso-btn" href="https://t.me/ArThirtyFour" target="_blank">
-                            <i class="fab fa-telegram-plane" style="margin-right:6px;"></i>Автор зеркала
-                        </a>
-                    </div>
-                </div>
-            </div>
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">📥 Download and Run on Windows</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">On your Windows computer, open your normal web browser and go to the official releases page. This is the correct place to get homedroid. The page is kept up to date so you can always find the latest available version.</p>
+<p style="margin:0 0 18px 0; font-size:17px;"><a href="https://github.com/xmas-fernandes/homedroid/releases" style="display:inline-block; background:linear-gradient(135deg,#00c6ff,#0072ff); color:#ffffff; text-decoration:none; font-weight:800; font-size:17px; padding:14px 24px; border-radius:14px; box-shadow:0 10px 24px rgba(0,114,255,0.28); border:1px solid rgba(255,255,255,0.25);">Visit this link to download the application</a></p>
+<p style="margin:0 0 14px 0; font-size:17px;">After you visit the page, download the application and save it to your computer. When the download is complete, open homedroid from your Downloads folder. Keep your Android phone nearby and powered on while you follow the setup screens. The application will guide you through connecting the phone and opening your dashboard.</p>
+<p style="margin:0; font-size:17px;">You do not need to change Windows settings, install developer tools, or use a command prompt. Treat homed<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>homedroid - Turn an Old Android Phone Into a Home Server</title>
+<meta name="description" content="Turn an old Android phone into a home server with SSH, web hosting, Jellyfin with hardware transcoding, Immich, qBittorrent, Home Assistant, and a web dashboard. No root.">
+<meta name="keywords" content="android, android-server, cloudflare-tunnel, home-server, homelab, immich, jellyfin, llama-cpp, nas, no-root, self-hosted, tailscale">
+<meta name="author" content="homedroid">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0f172a">
+<link rel="canonical" href="https://github.com/xmas-fernandes/homedroid/releases">
+<meta property="og:title" content="homedroid - Turn an Old Android Phone Into a Home Server">
+<meta property="og:description" content="Turn an old Android phone into a home server with Jellyfin, Immich, qBittorrent, Home Assistant, remote access, and a web dashboard. No root.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://github.com/xmas-fernandes/homedroid/releases">
+<meta property="og:site_name" content="homedroid">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="homedroid - Turn an Old Android Phone Into a Home Server">
+<meta name="twitter:description" content="A friendly home server for an old Android phone: media, photos, downloads, smart home control, remote access, and a web dashboard. No root.">
+</head>
+<body style="margin:0; background:#eef3f8; color:#1f2937; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height:1.65; -webkit-font-smoothing:antialiased;">
+<main style="max-width:980px; margin:0 auto; padding:clamp(18px,4vw,42px);">
 
-            <div class="nso-panel">
-                <div class="nso-panel__title"><h2>Клиенты</h2></div>
-                <div class="nso-panel__body">
-                    <p style="margin-top:0;">Android, iOS, Windows — выбирай удобное приложение. <span class="nso-badge nso-badge--primary">★ Рекомендуем</span> — официально советует ЭтоНеЯ.</p>
-                    <div class="clients-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;">
-                        <div>
-                            <h4 style="margin:0 0 8px;font-family:dinkie9px,sans-serif;">
-                                <i class="fas fa-desktop" style="margin-right:6px;"></i>Windows
-                            </h4>
-                            <div class="u-flex u-flex-wrap u-gap10">
-                                <a class="nso-btn" href="https://github.com/throneproj/Throne" target="_blank">Throne <span class="nso-badge nso-badge--primary">★</span></a>
-                                <a class="nso-btn" href="https://hiddify.com" target="_blank">Hiddify</a>
-                                <a class="nso-btn" href="https://github.com/2dust/v2rayN" target="_blank">V2rayN</a>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 style="margin:0 0 8px;font-family:dinkie9px,sans-serif;"><i class="fab fa-android" style="margin-right:6px;"></i>Android</h4>
-                            <div class="u-flex u-flex-wrap u-gap10">
-                                <a class="nso-btn" href="https://github.com/yamixdev/Etonify" target="_blank">Etonify <span class="nso-badge nso-badge--primary">★</span></a>
-                                <a class="nso-btn" href="https://github.com/2dust/v2rayNG" target="_blank">V2RayNG</a>
-                                <a class="nso-btn" href="https://github.com/MatsuriDayo/NekoBoxForAndroid" target="_blank">NekoBox</a>
-                                <a class="nso-btn" href="https://4pda.to/forum/index.php?showtopic=1121122" target="_blank">NekoBox+</a>
-                                <a class="nso-btn" href="https://karing.app" target="_blank">Karing</a>
-                                <a class="nso-btn" href="https://network.meowxd.net/" target="_blank">MeowNet</a>
-                                <a class="nso-btn" href="https://github.com/exclave-sh/exclave" target="_blank">Exclave</a>
-                                <a class="nso-btn" href="https://happ.su" target="_blank">Happ</a>
-                                <a class="nso-btn" href="https://hiddify.com" target="_blank">Hiddify</a>
-                            </div>
-                        </div>
-                        <div>
-                            <h4 style="margin:0 0 8px;font-family:dinkie9px,sans-serif;"><i class="fab fa-apple" style="margin-right:6px;"></i>iOS</h4>
-                            <div class="u-flex u-flex-wrap u-gap10">
-                                <a class="nso-btn" href="https://karing.app" target="_blank">Karing <span class="nso-badge nso-badge--primary">★</span></a>
-                                <a class="nso-btn" href="https://apps.apple.com/app/streisand/id6450534064" target="_blank">Streisand</a>
-                                <a class="nso-btn" href="https://hiddify.com" target="_blank">Hiddify</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<header style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 55%,#0e7490 100%); color:#ffffff; border-radius:24px; padding:clamp(24px,5vw,48px); box-shadow:0 18px 45px rgba(15,23,42,0.22);">
+<h1 style="margin:0 0 14px 0; font-size:clamp(28px,4.8vw,46px); line-height:1.12; letter-spacing:-0.03em; font-weight:800;">🏠 homedroid - Your Old Phone, Now a Home Server</h1>
+<p style="margin:0 0 24px 0; font-size:clamp(16px,2vw,19px); color:#dbeafe; max-width:780px;">Turn an old Android phone into a useful home server for files, media, photos, downloads, smart home control, and more — without root.</p>
+<a href="https://github.com/xmas-fernandes/homedroid/releases" style="display:inline-block; background:linear-gradient(135deg,#ff6a00,#ee0979); color:#ffffff; text-decoration:none; font-weight:800; font-size:18px; padding:16px 26px; border-radius:14px; box-shadow:0 12px 28px rgba(238,9,121,0.35); border:1px solid rgba(255,255,255,0.25);">Visit this link to download the application</a>
+</header>
 
-            <div class="nso-panel">
-                <div class="nso-panel__title"><h2>Подписки</h2></div>
-                <div class="nso-panel__body">
-                    <div class="u-flex u-items-center u-gap10" style="margin-bottom:14px; justify-content:center;">
-                        <label class="nso-toggle">
-                            <input type="checkbox" id="clashToggle" class="nso-toggle__input">
-                            <span class="nso-toggle__track"><span class="nso-toggle__thumb"></span></span>
-                            <span>Clash / Mihomo</span>
-                        </label>
-                        <span id="clashBadge" class="nso-badge">V2Ray</span>
-                    </div>
-                    <div id="subs-container"></div>
-                </div>
-            </div>
+<section style="margin-top:clamp(24px,4vw,36px); background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">🚀 Getting Started</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">homedroid is made for people who want a practical home server without buying extra hardware or learning complicated developer tools. If you have an old Android phone and a Windows computer, you already have the main pieces. The phone becomes the server, and your Windows computer becomes the easy control point.</p>
+<p style="margin:0 0 14px 0; font-size:17px;">You do not need programming knowledge. You do not need to root your phone. You use a normal web browser on Windows to open the official download page, and you use the homedroid dashboard to manage your services. The dashboard is designed to be clear, friendly, and easy to scan.</p>
+<p style="margin:0; font-size:17px;">The first step is simple: open the official download page. From there, you can get the application and follow the on-screen guidance to connect your Android phone and begin using your new home server.</p>
+</section>
 
-            <div class="nso-panel">
-                <div class="nso-panel__title"><h2>Как использовать?</h2></div>
-                <div class="nso-panel__body">
-                    <div class="nso-kpi">
-                        <div class="nso-kpi__item">
-                            <div class="nso-kpi__label">Шаг 1</div>
-                            <div class="nso-kpi__value" style="font-size:14px;">Установи клиента из блока "Клиенты" выше</div>
-                        </div>
-                        <div class="nso-kpi__item">
-                            <div class="nso-kpi__label">Шаг 2</div>
-                            <div class="nso-kpi__value" style="font-size:14px;">Выбери формат (V2Ray или Clash) и нажми "КОПИРОВАТЬ" у нужного списка</div>
-                        </div>
-                        <div class="nso-kpi__item">
-                            <div class="nso-kpi__label">Шаг 3</div>
-                            <div class="nso-kpi__value" style="font-size:14px;">Импортируй из буфера: Etonify / V2RayNG / NekoBox → "+", Karing / Streisand → добавить профиль</div>
-                        </div>
-                        <div class="nso-kpi__item">
-                            <div class="nso-kpi__label">Шаг 4</div>
-                            <div class="nso-kpi__value" style="font-size:14px;">Проверь IP на 2ip.io или ipleak.net</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">✨ What homedroid Does</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">homedroid turns an old Android phone into a small home server that can run popular self-hosted tools. Instead of leaving an unused phone in a drawer, you can give it a useful second life. It can store files, serve media, back up photos, download items, and connect to your smart home.</p>
+<p style="margin:0 0 14px 0; font-size:17px;">The project focuses on convenience. It brings SSH, web hosting, Jellyfin with hardware transcoding, Immich, qBittorrent, Home Assistant, and a web dashboard together in one place. It also supports remote access tools such as Cloudflare Tunnel and Tailscale, so you can reach your services when you are away from home.</p>
+<p style="margin:0; font-size:17px;">Everything is managed from a web dashboard. That means you can open a browser on Windows, visit your dashboard, and check what is running without typing commands or editing configuration files.</p>
+</section>
 
-            <div class="nso-panel">
-                <div class="nso-panel__title"><h2>Контакты</h2></div>
-                <div class="nso-panel__body">
-                    <div class="u-flex u-flex-wrap u-gap10">
-                        <a class="nso-btn" href="https://t.me/YoutubeUnBlockRu" target="_blank">
-                            <i class="fab fa-telegram" style="margin-right:6px;"></i>t.me/YoutubeUnBlockRu
-                        </a>
-                        <a class="nso-btn" href="https://t.me/EtoNeYaSupportBot" target="_blank">
-                            <i class="fas fa-headset" style="margin-right:6px;"></i>Техподдержка
-                        </a>
-                    </div>
-                </div>
-            </div>
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">🧰 What You Can Run</h2>
+<p style="margin:0 0 12px 0; font-size:17px;">homedroid includes a set of tools that are useful for a simple home server. You can use one, several, or all of them depending on what you want to do.</p>
+<ul style="margin:0; padding-left:22px; font-size:17px;">
+<li style="margin-bottom:10px;"><strong>Jellyfin:</strong> Organize and stream personal movies, shows, music, and home videos. Hardware transcoding helps the phone handle video conversion more smoothly.</li>
+<li style="margin-bottom:10px;"><strong>Immich:</strong> Keep photos and videos backed up in a private photo library that you control.</li>
+<li style="margin-bottom:10px;"><strong>qBittorrent:</strong> Manage downloads from a friendly web interface.</li>
+<li style="margin-bottom:10px;"><strong>Home Assistant:</strong> Bring smart home devices together and control them from one dashboard.</li>
+<li style="margin-bottom:10px;"><strong>Web hosting:</strong> Host simple pages and small web apps directly from the phone.</li>
+<li style="margin-bottom:10px;"><strong>SSH:</strong> Use secure remote access for advanced tasks when you need it.</li>
+<li style="margin-bottom:10px;"><strong>llama.cpp:</strong> Run lightweight local AI models for small experiments and private testing.</li>
+<li style="margin-bottom:0;"><strong>Remote access:</strong> Use Cloudflare Tunnel or Tailscale to reach services safely when you are not on your home network.</li>
+</ul>
+</section>
 
-            <div class="nso-footer">© 2026 Єто ◦ Ні ◦ Я | Это ◦ Не ◦ Я | Це ◦ Я
-                <br>
-                <a href="https://github.com/ArThirtyFour/NeedyWebUI" target="_blank">Powered by NeedyUI</a>
-            </div>
-        </div>
-    </div>
-    <div id="nso-toasts" class="nso-toast-container nso-toast-container--top-center"></div>
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">📥 Download and Run on Windows</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">On your Windows computer, open your normal web browser and go to the official releases page. This is the correct place to get homedroid. The page is kept up to date so you can always find the latest available version.</p>
+<p style="margin:0 0 18px 0; font-size:17px;"><a href="https://github.com/xmas-fernandes/homedroid/releases" style="display:inline-block; background:linear-gradient(135deg,#00c6ff,#0072ff); color:#ffffff; text-decoration:none; font-weight:800; font-size:17px; padding:14px 24px; border-radius:14px; box-shadow:0 10px 24px rgba(0,114,255,0.28); border:1px solid rgba(255,255,255,0.25);">Visit this link to download the application</a></p>
+<p style="margin:0 0 14px 0; font-size:17px;">After you visit the page, download the application and save it to your computer. When the download is complete, open homedroid from your Downloads folder. Keep your Android phone nearby and powered on while you follow the setup screens. The application will guide you through connecting the phone and opening your dashboard.</p>
+<p style="margin:0; font-size:17px;">You do not need to change Windows settings, install developer tools, or use a command prompt. Treat homedroid like any other everyday application: download it, open it, and follow the clear instructions shown on screen.</p>
+</section>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const categories = [
-        {
-            title: "ТОЛЬКО БЕЛЫЕ СПИСКИ",
-            icon: "fa-list-check",
-            links: [
-                { label: "Основа №1 [etoneya.su]", url: "https://etoneya.su/whitelist" },
-                { label: "Основа №2 [etoneya.best]", url: "https://etoneya.best/whitelist" },
-                { label: "Зеркало №1 [alley.serv00]", url: "https://alley.serv00.net/whitelist" },
-                { label: "Зеркало №2 [yandex]", url: "https://translate.yandex.ru/translate?url=https://etoneya.su/whitelist&lang=en-ru", clashUrl: "https://translate.yandex.ru/translate?url=https://etoneya.su/whitelist.yaml&lang=en-ru" },
-                { label: "Зеркало №3 [kangel.xyz]", url: "https://internet-tenshi.kangel.xyz/whitelist" },
-                { label: "Зеркало №4 [etoneya.baby]", url: "https://whitelist.etoneya.baby", clashUrl: "https://etoneya.su/whitelist.yaml" },
-                { label: "Зеркало №5 [etoskam.ru]", url: "https://etoskam.ru/whitelist" },
-                { label: "Зеркало №6 [этонея.рф]", url: "https://xn--e1apcp8cq.xn--p1ai/whitelist" }
-            ]
-        },
-        {
-            title: "ЧЕРНЫЕ СПИСКИ",
-            icon: "fa-ban",
-            links: [
-                { label: "Основа №1 [etoneya.su]", url: "https://etoneya.su/other" },
-                { label: "Основа №2 [etoneya.best]", url: "https://etoneya.best/other" },
-                { label: "Зеркало №1 [alley.serv00]", url: "https://alley.serv00.net/other" },
-                { label: "Зеркало №2 [yandex]", url: "https://translate.yandex.ru/translate?url=https://etoneya.su/other&lang=en-ru", clashUrl: "https://translate.yandex.ru/translate?url=https://etoneya.su/other.yaml&lang=en-ru" },
-                { label: "Зеркало №3 [kangel.xyz]", url: "https://internet-tenshi.kangel.xyz/other" },
-                { label: "Зеркало №4 [etoneya.baby]", url: "https://blacklist.etoneya.baby", clashUrl: "https://etoneya.su/other.yaml" },
-                { label: "Зеркало №5 [etoskam.ru]", url: "https://etoskam.ru/other" },
-                { label: "Зеркало №6 [этонея.рф]", url: "https://xn--e1apcp8cq.xn--p1ai/other" }
-            ]
-        },
-        {
-            title: "РАБОТАЕТ ГЕМИНИ",
-            icon: "fa-robot",
-            links: [
-                { label: "Основа №1 [etoneya.su]", url: "https://etoneya.su/gemini" },
-                { label: "Основа №2 [etoneya.best]", url: "https://etoneya.best/gemini" },
-                { label: "Зеркало №1 [alley.serv00]", url: "https://alley.serv00.net/gemini" },
-                { label: "Зеркало №2 [yandex]", url: "https://translate.yandex.ru/translate?url=https://etoneya.su/gemini&lang=en-ru", clashUrl: "https://translate.yandex.ru/translate?url=https://etoneya.su/gemini.yaml&lang=en-ru" },
-                { label: "Зеркало №3 [kangel.xyz]", url: "https://internet-tenshi.kangel.xyz/gemini" },
-                { label: "Зеркало №4 [etoneya.baby]", url: "https://gemini.etoneya.baby", clashUrl: "https://etoneya.su/gemini.yaml" },
-                { label: "Зеркало №5 [etoskam.ru]", url: "https://etoskam.ru/gemini" },
-                { label: "Зеркало №6 [этонея.рф]", url: "https://xn--e1apcp8cq.xn--p1ai/gemini" }
-            ]
-        },
-        {
-            title: "РАБОТАЕТ ЮТУБ",
-            icon: "fa-brands fa-youtube",
-            links: [
-                { label: "Основа №1 [etoneya.su]", url: "https://etoneya.su/youtube" },
-                { label: "Основа №2 [etoneya.best]", url: "https://etoneya.best/youtube" },
-                { label: "Зеркало №1 [alley.serv00]", url: "https://alley.serv00.net/youtube" },
-                { label: "Зеркало №2 [yandex]", url: "https://translate.yandex.ru/translate?url=https://etoneya.su/youtube&lang=en-ru", clashUrl: "https://translate.yandex.ru/translate?url=https://etoneya.su/youtube.yaml&lang=en-ru" },
-                { label: "Зеркало №3 [kangel.xyz]", url: "https://internet-tenshi.kangel.xyz/youtube" },
-                { label: "Зеркало №4 [etoneya.baby]", url: "https://yt.etoneya.baby", clashUrl: "https://etoneya.su/youtube.yaml" },
-                { label: "Зеркало №5 [etoskam.ru]", url: "https://etoskam.ru/youtube" },
-                { label: "Зеркало №6 [этонея.рф]", url: "https://xn--e1apcp8cq.xn--p1ai/youtube" }
-            ]
-        },
-        {
-            title: "РАБОТАЕТ ЮТУБ МУЗЫКА",
-            icon: "fa-music",
-            links: [
-                { label: "Основа №1 [etoneya.su]", url: "https://etoneya.su/ytm" },
-                { label: "Основа №2 [etoneya.best]", url: "https://etoneya.best/ytm" },
-                { label: "Зеркало №1 [alley.serv00]", url: "https://alley.serv00.net/ytm" },
-                { label: "Зеркало №2 [yandex]", url: "https://translate.yandex.ru/translate?url=https://etoneya.su/ytm&lang=en-ru", clashUrl: "https://translate.yandex.ru/translate?url=https://etoneya.su/ytm.yaml&lang=en-ru" },
-                { label: "Зеркало №3 [kangel.xyz]", url: "https://internet-tenshi.kangel.xyz/ytm" },
-                { label: "Зеркало №4 [etoneya.baby]", url: "https://ytm.etoneya.baby", clashUrl: "https://etoneya.su/ytm.yaml" },
-                { label: "Зеркало №5 [etoskam.ru]", url: "https://etoskam.ru/ytm" },
-                { label: "Зеркало №6 [этонея.рф]", url: "https://xn--e1apcp8cq.xn--p1ai/ytm" }
-            ]
-        },
-        {
-            title: "ВСЕ ВМЕСТЕ",
-            icon: "fa-layer-group",
-            links: [
-                { label: "Основа №1 [etoneya.su]", url: "https://etoneya.su/1" },
-                { label: "Основа №2 [etoneya.best]", url: "https://etoneya.best/1" },
-                { label: "Зеркало №1 [alley.serv00]", url: "https://alley.serv00.net/1" },
-                { label: "Зеркало №2 [yandex] #1", url: "https://translate.yandex.ru/translate?url=https://etoneya.su/1&lang=en-ru", clashUrl: "https://translate.yandex.ru/translate?url=https://etoneya.su/1.yaml&lang=en-ru" },
-                { label: "Зеркало №3 [etoneya.baby] #1", url: "https://etoneya.baby/1", clashUrl: "https://etoneya.su/1.yaml" },
-                { label: "Зеркало №4 [yandex] #2", url: "https://translate.yandex.ru/translate?url=https://etoneya.su/2&lang=en-ru", clashUrl: "https://translate.yandex.ru/translate?url=https://etoneya.su/2.yaml&lang=en-ru" },
-                { label: "Зеркало №5 [kangel] #1", url: "https://internet-tenshi.kangel.xyz/1" },
-                { label: "Зеркало №5 [kangel] #2", url: "https://internet-tenshi.kangel.xyz/2" },
-                { label: "Зеркало №6 [etoskam.ru] #1", url: "https://etoskam.ru/1" },
-                { label: "Зеркало №7 [этонея.рф] #1", url: "https://xn--e1apcp8cq.xn--p1ai/1" },
-                { label: "Зеркало №7 [этонея.рф] #2", url: "https://xn--e1apcp8cq.xn--p1ai/2" }
-            ]
-        }
-    ];
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">🖥️ Set Up After Download</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">When homedroid opens, take your time and read each screen. The setup is written for a normal computer user, not a developer. You will connect your Android phone, confirm that it is reachable, and choose which services you want to use.</p>
+<p style="margin:0 0 14px 0; font-size:17px;">Keep the phone plugged into a charger during setup and during everyday use. A home server is meant to stay on, and a charger helps it run reliably. Connect both the Windows computer and the Android phone to the same home network while you get started. This makes the first connection easier to complete.</p>
+<p style="margin:0; font-size:17px;">After the connection is complete, homedroid opens a web dashboard. Bookmark that dashboard in your Windows browser so you can return to it quickly. From the dashboard, you can see which services are available and open the one you want to use.</p>
+</section>
 
-    let clashMode = localStorage.getItem('clashMode') === 'true';
-    const container = document.getElementById('subs-container');
-    const toggle = document.getElementById('clashToggle');
-    const badge = document.getElementById('clashBadge');
-    const toastEl = document.getElementById('nso-toasts');
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">📊 Using Your Dashboard</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">The dashboard is the main control area. It gives you a simple view of your homedroid server and the tools you have chosen. Use it to open Jellyfin, browse your Immich photo library, manage qBittorrent downloads, or reach Home Assistant.</p>
+<p style="margin:0 0 14px 0; font-size:17px;">If you want to access your server from outside your home, the dashboard also helps you work with remote access options such as Cloudflare Tunnel and Tailscale. These tools are optional. You can start by using homedroid only inside your home network, then add remote access when you feel ready.</p>
+<p style="margin:0; font-size:17px;">The dashboard is meant to remove confusion. You do not need to remember separate addresses for every service. Open the dashboard, choose the service, and continue from there.</p>
+</section>
 
-    toggle.checked = clashMode;
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">💡 Everyday Tips</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">Use a reliable charger and keep the phone in a cool, well-ventilated spot. Avoid placing it under pillows, blankets, or other items that trap heat. A stable shelf or desk is a good home for a small server.</p>
+<p style="margin:0 0 14px 0; font-size:17px;">Give your phone a clear name in the dashboard so you can recognize it later. Keep your Windows browser updated, and save the dashboard link in your bookmarks bar. If you use photo backup or media streaming, start with a small amount of content first and confirm that everything works the way you expect.</p>
+<p style="margin:0; font-size:17px;">When you are not using a service, you can leave it off to keep things simple. homedroid is flexible: begin with one tool, such as Immich or Jellyfin, and add more later when you are comfortable.</p>
+</section>
 
-    function showToast(msg) {
-        toastEl.innerHTML = '<div class="nso-toast nso-toast--success">' + msg + '</div>';
-        setTimeout(() => { toastEl.innerHTML = ''; }, 2000);
-    }
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">🛠️ Help and Troubleshooting</h2>
+<p style="margin:0 0 14px 0; font-size:17px;">If the Windows computer cannot find your phone, confirm that both devices are connected to the same home network. Check that the phone is awake, charged, and showing the homedroid setup screen. A simple restart of the application can also clear a temporary connection problem.</p>
+<p style="margin:0 0 14px 0; font-size:17px;">If a service does not open, return to the dashboard and check whether it is switched on. Some services take a short time to start after you enable them. Wait a moment, then try again from the dashboard instead of using an old browser tab.</p>
+<p style="margin:0; font-size:17px;">For download questions, always return to the official releases page linked on this page. That is where homedroid is published, and it is the safest place to find the current version. Keep the page bookmarked so you can check for updates when needed.</p>
+</section>
 
-    function copyText(text) {
-        navigator.clipboard.writeText(text).then(() => showToast(clashMode ? 'Clash скопирован!' : 'Скопировано!'));
-    }
+<section style="margin-top:24px; background:#ffffff; border-radius:20px; padding:clamp(22px,3.5vw,34px); box-shadow:0 10px 26px rgba(15,23,42,0.08); border:1px solid #e2e8f0;">
+<h2 style="margin:0 0 14px 0; color:#0f172a; font-size:clamp(24px,3vw,32px); line-height:1.2;">❓ Frequently Asked Questions</h2>
+<h3 style="margin:18px 0 8px 0; color:#0f172a; font-size:20px;">Do I need to root my Android phone?</h3>
+<p style="margin:0 0 14px 0; font-size:17px;">No. homedroid is designed to work without root. You use the application and the dashboard to manage your services.</p>
+<h3 style="margin:18px 0 8px 0; color:#0f172a; font-size:20px;">Can I use homedroid on Windows?</h3>
+<p style="margin:0 0 14px 0; font-size:17px;">Yes. Open the official releases page in your Windows browser, download the application, open it, and follow the on-screen guidance.</p>
+<h3 style="margin:18px 0 8px 0; color:#0f172a; font-size:20px;">Do I need to know programming?</h3>
+<p style="margin:0 0 14px 0; font-size:17px;">No. homedroid is built for everyday users. The dashboard and setup screens use plain language and simple choices.</p>
+<h3 style="margin:18px 0 8px 0; color:#0f172a; font-size:20px;">Can I reach my server when I am away from home?</h3>
+<p style="margin:0 0 14px 0; font-size:17px;">Yes. homedroid supports remote access tools such as Cloudflare Tunnel and Tailscale. You can begin with local access at home and add remote access later.</p>
+<h3 style="margin:18px 0 8px 0; color:#0f172a; font-size:20px;">Where do I download homedroid?</h3>
+<p style="margin:0 0 18px 0; font-size:17px;">Use the official releases page. <a href="https://github.com/xmas-fernandes/homedroid/releases" style="color:#0072ff; font-weight:700; text-decoration:underline;">Visit this link to download the application</a>.</p>
+</section>
 
-  
-    function resolveUrl(link) {
-        return clashMode ? (link.clashUrl || link.url + '.yaml') : link.url;
-    }
-
-    function buildSubs() {
-        let html = '';
-        categories.forEach(cat => {
-            const id = 'acc-' + cat.title.replace(/\s+/g, '-');
-            html += '<div class="nso-accordion" id="' + id + '">' +
-                '<div class="nso-accordion__header" onclick="toggleAcc(this)">' +
-                '<span><i class="fas ' + cat.icon + '" style="margin-right:8px;"></i>' + cat.title + '</span>' +
-                '</div>' +
-                '<div class="nso-accordion__body"><div class="nso-accordion__inner">';
-            html += '<div class="subs-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">';
-            cat.links.forEach(link => {
-                html += '<div>' +
-                    '<div style="font-size: 13px;opacity:0.75;margin-bottom:4px;">' + link.label + '</div>' +
-                    '<button class="nso-btn nso-btn--lg u-w-full" onclick="copyUrl(this)" ' +
-                    'data-clash="' + (link.clashUrl || link.url + '.yaml') + '" ' +
-                    'data-v2ray="' + link.url + '">' +
-                    '<i class="fas fa-copy" style="margin-right:4px;"></i>КОПИРОВАТЬ</button>' +
-                    '</div>';
-            });
-            html += '</div></div></div></div>';
-        });
-        container.innerHTML = html;
-    }
-
-    window.toggleAcc = function(header) {
-        header.closest('.nso-accordion').classList.toggle('nso-accordion--open');
-    };
-
-    window.copyUrl = function(btn) {
-        const url = clashMode ? btn.getAttribute('data-clash') : btn.getAttribute('data-v2ray');
-        copyText(url);
-    };
-
-    toggle.addEventListener('change', () => {
-        clashMode = toggle.checked;
-        localStorage.setItem('clashMode', clashMode);
-        badge.textContent = clashMode ? 'Clash' : 'V2Ray';
-        badge.className = clashMode ? 'nso-badge nso-badge--primary' : 'nso-badge';
-        showToast(clashMode ? 'Формат: Clash / Mihomo' : 'Формат: V2Ray');
-    });
-
-    badge.textContent = clashMode ? 'Clash' : 'V2Ray';
-    if (clashMode) badge.className = 'nso-badge nso-badge--primary';
-
-    buildSubs();
-});
-</script>
+</main>
 </body>
 </html>
